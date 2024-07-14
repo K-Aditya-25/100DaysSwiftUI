@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var showingScore = false
     @State private var scoreTitle = ""
     
+    @State private var round = 1
     @State private var score = 0
     var body: some View {
         ZStack{
@@ -28,6 +29,10 @@ struct ContentView: View {
             VStack(spacing: 15){
                 Spacer()
                 Text("Guess The Flag")
+                    .font(.largeTitle)
+                    .fontWeight(.heavy)
+                    .foregroundColor(.white)
+                Text("Round \(round)")
                     .font(.largeTitle)
                     .fontWeight(.heavy)
                     .foregroundColor(.white)
@@ -72,29 +77,52 @@ struct ContentView: View {
         }
         
         .alert(scoreTitle, isPresented: $showingScore){
-            Button("Continue", action: askQuestion)
+            if round > 8 {
+                Button("Restart", action: resetScoreRound)
+                Button(action: {exit(0)},
+                       label: {
+                    Text("Exit")
+                })
+            }
+            else{
+                Button("Continue", action: askQuestion)
+            }
         }message: {
-            Text("Your Score Is: \(score)")
+            if round > 8{
+                Text("GAME OVER! You guessed \(score) out of 8 correctly!")
+            }
+            else{
+                Text("Your Score Is: \(score)")
+            }
         }
     }
     func flagTapped(_ number: Int){
+        round += 1
         if number == correctAnswer{
             scoreTitle = "Correct!"
             score += 1
         }
         else{
-            scoreTitle = "Wrong!"
-            if score == 0{
-//                
-            }else{
-                score -= 1
-            }
+            scoreTitle = """
+Wrong!
+That's The Flag Of \(countries[number])
+"""
+            //commented the below if-else condition because negative scoring is removed from the latest version
+//            if score == 0{
+////                
+//            }else{
+//                score -= 1
+//            }
         }
         showingScore = true
     }
     func askQuestion(){
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
+    }
+    func resetScoreRound(){
+        score = 0
+        round = 1
     }
 }
 
