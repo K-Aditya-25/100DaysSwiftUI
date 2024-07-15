@@ -22,7 +22,7 @@ struct ContentView: View {
         return totalAmount / persons
     }
     
-    let tipPercentages = [5, 10, 15, 20]
+    let tipPercentages = [5, 10, 15, 20, 0]
     
     var body: some View {
         NavigationStack{
@@ -50,6 +50,8 @@ struct ContentView: View {
                 
                 Section("Total Amount"){
                     Text(totalAmount, format: .currency(code: Locale.current.currency?.identifier ?? "INR"))
+                    //challenge for Project 3: Add Custom Modifier
+                        .foregroundStyle(tipPercentage == 0 ? .red : .black)
                 }
                 
                 Section("Amount Per Person"){
