@@ -15,7 +15,7 @@ struct ContentView: View {
     
     @State private var alertTitle = ""
     @State private var alertMessage = ""
-    @State private var showingAlert = false
+//    @State private var showingAlert = false
     
     static var defaultWakeTime: Date{
         var components = DateComponents()
@@ -23,40 +23,72 @@ struct ContentView: View {
         components.minute = 0
         return Calendar.current.date(from: components) ?? .now
     }
-    var body: some View {
-        NavigationStack{
-            Form{
-                VStack(alignment: .leading ,spacing:0){
-                    Text("What Time Do You Wake Up?")
-                        .font(.headline)
-                        .padding(.bottom)
-                    DatePicker("Please Enter A Time", selection: $wakeUpTime, displayedComponents: .hourAndMinute)
-                        .labelsHidden()
-                }
-                VStack(alignment: .leading ,spacing:0){
-                    Text("Desired Amount Of Sleep?")
-                        .font(.headline)
-                    Stepper("\(sleepAmount.formatted()) hours", value: $sleepAmount, in: 2...12, step: 0.25)
-                }
-                VStack(alignment: .leading ,spacing:0){
-                    Text("Daily Coffee Intake")
-                        .font(.headline)
-                    Stepper("^[\(coffeeAmount) cup](inflect: true)", value: $coffeeAmount, in: 0...20)
-                }
-            }
-            .navigationTitle("Better Rest")
-            .toolbar{
-                Button("Calculate", action: calculateSleepTime)
-            }
-            .alert(alertTitle, isPresented: $showingAlert){
-                Button("OK"){}
-            }message: {
-                Text(alertMessage)
-            }
-        }
+    
+    private var actualTime: Date{
+        calculateSleepTime()
     }
     
-    func calculateSleepTime(){
+    var body: some View {
+        VStack{
+            NavigationStack{
+                Form{
+                    VStack(alignment: .leading ,spacing:0){
+                        Text("What Time Do You Wake Up?")
+                            .font(.headline)
+                            .padding(.bottom)
+                        DatePicker("Please Enter A Time", selection: $wakeUpTime, displayedComponents: .hourAndMinute)
+                            .labelsHidden()
+                    }
+                    VStack(alignment: .leading ,spacing:0){
+                        Text("Desired Amount Of Sleep?")
+                            .font(.headline)
+                        Stepper("\(sleepAmount.formatted()) hours", value: $sleepAmount, in: 2...12, step: 0.25)
+                    }
+                    VStack(alignment: .leading ,spacing:0){
+                        Text("Daily Coffee Intake")
+                            .font(.headline)
+    //                    Stepper("^[\(coffeeAmount) cup](inflect: true)", value: $coffeeAmount, in: 0...20)
+                        Picker("How Many cup(s) of coffee?", selection: $coffeeAmount){
+                            ForEach(0..<11){
+                                Text("^[\($0) cup](inflect: true)")
+                                    
+                            }
+                        }
+                        .pickerStyle(.wheel)
+                    }
+                }
+                .navigationTitle("Better Rest")
+    //            .toolbar{
+    //                Button("Calculate", action: calculateSleepTime)
+    //            }
+    //            .alert(alertTitle, isPresented: $showingAlert){
+    //                Button("OK"){}
+    //            }message: {
+    //                Text(alertMessage)
+    //            }
+            }
+            Text("Your Ideal Bedtime Is...")
+                .font(.largeTitle)
+                .fontWeight(.semibold)
+            ZStack{
+                Rectangle()
+                    .frame(width: 200, height: 100)
+                    .cornerRadius(10)
+                    .foregroundStyle(.thinMaterial)
+                    .shadow(radius: /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
+                Text("\(actualTime.formatted(date: .omitted, time: .shortened))")
+                    .foregroundStyle(.primary)
+                    .bold()
+                    .font(.largeTitle)
+            }
+            
+            
+        }
+        
+        
+    }
+    
+    func calculateSleepTime() -> Date{
         do{
             let config = MLModelConfiguration()
             let model = try SleepCalculator(configuration: config)
@@ -69,11 +101,16 @@ struct ContentView: View {
             
             alertTitle = "Your Ideal Bedtime Is..."
             alertMessage = sleepTime.formatted(date: .omitted, time: .shortened)
+//            showingAlert = true
+            return sleepTime
         }catch{
             alertTitle = "Error!"
             alertMessage = "Sorry, prediction failed."
+//            showingAlert = true
+            
         }
-        showingAlert = true
+        //should not execute ideally
+        return Date.now
     }
     
 }
