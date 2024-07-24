@@ -9,28 +9,19 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        List(1..<5){
-            Text("Number \($0)")
-        }
-        .listStyle(.automatic)
         
-        List{
-            Section("Static Rows"){
-                Text("hi!")
-                Text("hi!")
-                Text("hi!")
-                Text("hi!")
-            }
-            Section("Dynamic Rows"){
-                ForEach(1..<6){
-                    Text("Hey \($0)!")
-                }
+        /// Example of some Bundle Code
+        var body: some View {
+            if let fileURL = Bundle.main.url(forResource: "some-file", withExtension: "txt"){
+                //we found the file in our bundle
             }
             
+            if let fileContents = try? String(contentsOf: fileURL){
+                //we loaded the file into a String
+            }
         }
     }
 }
-
 #Preview {
     ContentView()
 }
