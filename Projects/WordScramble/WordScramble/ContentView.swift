@@ -8,51 +8,44 @@
 import SwiftUI
 
 struct ContentView: View {
-    let names = "Aditya Siddharth Anu Bharat"
-    let letters = ["a", "b", "c"]
-    let animal = "    cat       "
-    let testWord = "best"
+    @State private var rootWord = ""
+    @State private var listOfWords = [String]()
+    @State private var newWord = ""
     var body: some View {
-        
-        List{
-            Section("Separate Strings"){
-                ForEach(separateStrings(names), id: \.self){
-                    Text("\($0)")
+        NavigationStack{
+            List{
+                Section{
+                    TextField("Enter Your Word", text: $newWord)
+                        .textInputAutocapitalization(.never)
+                }
+                Section{
+                    ForEach(listOfWords, id: \.self){ word in
+                        HStack{
+                            Image(systemName: "\(word.count).circle")
+                            Text("\(word)")
+                        }
+                        
+                    }
                 }
             }
-            Section("Random String"){
-                Text(randomString(from: letters))
-            }
-            Section("Remove White Space"){
-                Text(trimWhiteSpace(in: animal))
-            }
+            .navigationTitle(rootWord)
+            .onSubmit(addWordToList) //onSubmit takes a function that has no parameters and returns nothing
             
-            Section("Test Spelling"){
-                Text(String(spellCheck(testWord)))
-            }
+        }
+    }
+    func addWordToList(){
+        let word = newWord.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        //exit function if new word length is 0
+        guard  word.count > 0 else{return}
+        
+        //insert word into list
+        withAnimation{
+            listOfWords.insert(word, at: 0)
         }
         
-    }
-    func separateStrings(_ string: String) -> [String]{
-       string.components(separatedBy: " ")
-    }
-    
-    func randomString(from array: [String]) -> String{
-        array.randomElement() ?? "Error"//This gives an optional value
-    }
-    
-    func trimWhiteSpace(in string: String) -> String{
-        string.trimmingCharacters(in: .whitespacesAndNewlines) //check for more options by only typing the dot
-    }
-    
-    func spellCheck(_ string: String) -> Bool{
-        let checker = UITextChecker()
-        let range = NSRange(location: 0, length: testWord.utf16.count)
-        let missplledRange = checker.rangeOfMisspelledWord(in: testWord, range: range, startingAt: 0, wrap: false, language: "en") //Objective C did not have a concept of Optional. If no spelling mistake is found, it will return NSNotFound
-        
-        //Address NSNotFound
-        let allGood = missplledRange.location == NSNotFound
-        return allGood
+        //Set newWord to empty string again
+        newWord = ""
     }
 }
 #Preview {
