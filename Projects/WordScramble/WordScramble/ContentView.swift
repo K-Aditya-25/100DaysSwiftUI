@@ -30,6 +30,9 @@ struct ContentView: View {
             }
             .navigationTitle(rootWord)
             .onSubmit(addWordToList) //onSubmit takes a function that has no parameters and returns nothing
+            .onAppear(perform: {
+                startGame()
+            })
             
         }
     }
@@ -46,6 +49,19 @@ struct ContentView: View {
         
         //Set newWord to empty string again
         newWord = ""
+    }
+    
+    
+    /// Call This Function When The Content View Is Started
+    func startGame(){
+        if let startURL = Bundle.main.url(forResource: "start", withExtension: "txt"){
+            if let startWords = try? String(contentsOf: startURL){
+                let allWords = startWords.components(separatedBy: "\n")
+                rootWord = allWords.randomElement() ?? "Butterfly"
+                return
+            }
+        }
+        fatalError("Damn, couldn't load the text file for some reason!")
     }
 }
 #Preview {
