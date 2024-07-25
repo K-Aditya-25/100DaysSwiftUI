@@ -11,10 +11,24 @@ struct ContentView: View {
     @State private var rootWord = ""
     @State private var listOfWords = [String]()
     @State private var newWord = ""
+    @State private var validWord = false
     
     @State private var errorTitle = ""
     @State private var errorMessage = ""
     @State private var showingError = false
+    
+    var score: Int {
+    // Calculate the score based on the provided formula
+            let lengthScores = listOfWords.map { word in
+                let length = word.count
+                return length * (length - 2)
+            }
+            let totalLengthScore = lengthScores.reduce(0, +)
+            let numberOfWordsBonus = 2 * listOfWords.count
+            
+            return totalLengthScore + numberOfWordsBonus
+            
+    }
     var body: some View {
         NavigationStack{
             List{
@@ -41,7 +55,15 @@ struct ContentView: View {
             .alert(errorTitle, isPresented: $showingError){}message: {
                 Text(errorMessage)
             }
+            .toolbar(content: {
+                Button("Restart", action: startGame)
+            })
             
+            Text("Score: \(score)")
+                .font(.system(size: 50))
+                .foregroundStyle(.primary)
+                .frame(width: .infinity, height: .infinity)
+//                .background(Color(.black))
         }
     }
     func addWordToList(){
@@ -51,24 +73,13 @@ struct ContentView: View {
         guard  word.count > 0 else{return}
         
         //validate input
-        guard isOriginal(word: newWord) else {
-            wordError(title: "Word used already", message: "Be more original")
-            return
-        }
-
-        guard isPossible(word: newWord) else {
-            wordError(title: "Word not possible", message: "You can't spell that word from '\(rootWord)'!")
-            return
-        }
-
-        guard isReal(word: newWord) else {
-            wordError(title: "Word not recognized", message: "You can't just make them up, you know!")
-            return
-        }
+        validWord = isValid(wordInUse: newWord)
         
         //insert word into list
-        withAnimation{
-            listOfWords.insert(word, at: 0)
+        if validWord{
+            withAnimation{
+                listOfWords.insert(word, at: 0)
+            }
         }
         
         //Set newWord to empty string again
@@ -81,7 +92,10 @@ struct ContentView: View {
         if let startURL = Bundle.main.url(forResource: "start", withExtension: "txt"){
             if let startWords = try? String(contentsOf: startURL){
                 let allWords = startWords.components(separatedBy: "\n")
+                //Set root word
                 rootWord = allWords.randomElement() ?? "Butterfly"
+                //Empty list of words
+                listOfWords = [String]()
                 return
             }
         }
@@ -113,10 +127,49 @@ struct ContentView: View {
         return misspelledRange.location == NSNotFound
     }
     
+    //Disallow answers that are shorter than three letters or are just our start word
+    func isLong(word: String) -> Bool{
+        word.count >= 3
+    }
+    
+    func isNotRoot(word: String) -> Bool{
+        word != rootWord
+    }
+    
+    //Function to set error title and message
     func wordError(title: String, message: String){
         errorMessage = message
         errorTitle = title
         showingError = true
+    }
+    
+    
+    //Final Validity function to verify the validaity of the word entered
+    func isValid(wordInUse:String) -> Bool{
+        
+        guard isOriginal(word: wordInUse) else {
+            wordError(title: "Word used already", message: "Be more original")
+            return false
+        }
+        
+        guard isPossible(word: wordInUse) else {
+            wordError(title: "Word not possible", message: "You can't spell that word from '\(rootWord)'!")
+            return false
+        }
+        
+        guard isReal(word: wordInUse) else {
+            wordError(title: "Word not recognized", message: "You can't just make them up, you know!")
+            return false
+        }
+        guard isLong(word: wordInUse) else{
+            wordError(title: "Word is too short", message: "Try a bigger word")
+            return false
+        }
+        guard isNotRoot(word: wordInUse) else{
+            wordError(title: "Root Word", message: "You cannot submit the Root Word!")
+            return false
+        }
+        return true
     }
 }
 #Preview {
